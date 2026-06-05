@@ -4,6 +4,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from mplsoccer import Pitch
 from dotenv import load_dotenv
+import anthropic
 from anthropic import Anthropic
 from xg_model import train_and_predict_all
 
@@ -108,9 +109,9 @@ with col_ai:
                     
                     user_prompt = f"Analyze this model output payload for scouting evaluation:\n{json.dumps(raw_stats_payload, indent=2)}"
                     
-                    # Using the latest Claude 3.5 Sonnet architecture
+                    # FIX: Using the correct, valid Anthropic model string
                     message = client.messages.create(
-                        model="claude-3-5-sonnet-20241022",
+                        model="claude-haiku-4-5-20251001",
                         max_tokens=1000,
                         system=system_prompt,
                         messages=[{"role": "user", "content": user_prompt}]
@@ -126,5 +127,12 @@ with col_ai:
                         mime="text/plain"
                     )
                     
+                # SENIOR FIX: Specific exception handling for clean UI feedback
+                except anthropic.AuthenticationError:
+                    st.error("API Execution Failure: Authentication Error. Check your API key.")
+                except anthropic.RateLimitError:
+                    st.error("API Execution Failure: Rate Limit Exceeded or Insufficient Credits.")
+                except anthropic.APIConnectionError:
+                    st.error("API Execution Failure: Network Connection Error.")
                 except Exception as e:
-                    st.error(f"API Execution Failure: {str(e)}")
+                    st.error(f"Unexpected System Error: {str(e)}")
