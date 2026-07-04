@@ -4,8 +4,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from mplsoccer import Pitch
 from dotenv import load_dotenv
-import anthropic
-from anthropic import Anthropic
+from groq import Groq
 from xg_model import train_and_predict_all
 
 # Load credentials from .env
@@ -87,52 +86,78 @@ with col_ai:
             "average_shot_distance_yards": round(avg_distance, 1)
         }
     }
-    
     with st.expander("🔍 View Raw Prompt Payload"):
         st.json(raw_stats_payload)
-        
+
     if st.button("Generate AI Scouting Brief", type="primary"):
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key or "your-actual-api-key" in api_key:
-            st.error("Missing credentials. Please configure your ANTHROPIC_API_KEY in the `.env` file.")
+        api_key = os.getenv("GROQ_API_KEY")
+
+        if not api_key:
+            st.error("Missing GROQ_API_KEY in your .env file.")
+
         else:
-            with st.spinner("Consulting Chief AI Football Analyst..."):
+            with st.spinner("Generating AI scouting report..."):
                 try:
-                    client = Anthropic(api_key=api_key)
-                    
-                    system_prompt = (
-                        "You are a Senior Football Analytics Director and Chief Scout. "
-                        "Analyze the provided player shooting telemetry parsed from our custom XGBoost model. "
-                        "Provide a professional, analytical scouting profile using precise sports terminology. "
-                        "Focus on shot selection efficiency, finishing mechanics, and spatial tendencies."
+                    client = Groq(api_key=api_key)
+
+                    system_prompt = """
+You are an elite football scout working for a Champions League club.
+
+Analyze ONLY the supplied statistics.
+
+Return the report in this format:
+
+## Executive Summary
+
+## Finishing Ability
+
+## Shot Selection
+
+## Spatial Tendencies
+
+## Strengths
+
+## Weaknesses
+
+## Tactical Fit
+
+## Development Recommendations
+
+Do not invent statistics.
+"""
+
+                    user_prompt = f"""
+Player data:
+
+{json.dumps(raw_stats_payload, indent=2)}
+"""
+
+                    response = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": system_prompt
+                            },
+                            {
+                                "role": "user",
+                                "content": user_prompt
+                            }
+                        ],
+                        temperature=0.4,
+                        max_tokens=700,
                     )
-                    
-                    user_prompt = f"Analyze this model output payload for scouting evaluation:\n{json.dumps(raw_stats_payload, indent=2)}"
-                    
-                    # FIX: Using the correct, valid Anthropic model string
-                    message = client.messages.create(
-                        model="claude-haiku-4-5-20251001",
-                        max_tokens=1000,
-                        system=system_prompt,
-                        messages=[{"role": "user", "content": user_prompt}]
-                    )
-                    
-                    report_content = message.content[0].text
-                    st.markdown(report_content)
-                    
+
+                    report = response.choices[0].message.content
+
+                    st.markdown(report)
+
                     st.download_button(
-                        label="Download Scouting Report",
-                        data=report_content,
-                        file_name=f"{selected_player.replace(' ', '_')}_scouting_report.txt",
-                        mime="text/plain"
+                        "Download Scouting Report",
+                        report,
+                        file_name=f"{selected_player.replace(' ','_')}_report.txt",
+                        mime="text/plain",
                     )
-                    
-                # SENIOR FIX: Specific exception handling for clean UI feedback
-                except anthropic.AuthenticationError:
-                    st.error("API Execution Failure: Authentication Error. Check your API key.")
-                except anthropic.RateLimitError:
-                    st.error("API Execution Failure: Rate Limit Exceeded or Insufficient Credits.")
-                except anthropic.APIConnectionError:
-                    st.error("API Execution Failure: Network Connection Error.")
+
                 except Exception as e:
-                    st.error(f"Unexpected System Error: {str(e)}")
+                    st.exception(e)
