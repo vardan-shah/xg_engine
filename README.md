@@ -1,27 +1,164 @@
 # 🏆 Expected Goals (xG) Engine & AI Scout
 
-**Executive Summary:** I built a production-grade Expected Goals (xG) engine using StatsBomb event tracking data, XGBoost, and SHAP to analyze spatial shot geometries from the 2022 FIFA World Cup. The model achieves a mathematically robust Validation AUC score of 0.833 on a stratified holdout set. The final layer introduces a Streamlit web dashboard that pipes custom ML telemetry directly into an Anthropic LLM to auto-generate natural language scouting reports.
+An AI-powered football analytics platform that predicts **Expected Goals (xG)** from FIFA World Cup 2022 shot events using **XGBoost**, visualizes player shooting patterns with interactive spatial analytics, and automatically generates professional scouting reports using **Groq's Llama 3.3** large language model.
 
-## 🛠️ Tech Stack & Infrastructure
-* **Data Source:** StatsBomb Open Data API (`statsbombpy`)
-* **Data Ingestion & Engineering:** `Pandas`, `NumPy`
-* **Machine Learning Framework:** `XGBoost` (Extreme Gradient Boosting)
-* **Model Interpretability:** `SHAP` (SHapley Additive exPlanations)
-* **Spatial Visualizations:** `mplsoccer` (StatsBomb pitch layout), `Matplotlib`
-* **Application & GenAI:** `Streamlit`, `Anthropic API` (Claude 3.5 Haiku), `python-dotenv`
+---
 
-## 🚀 Core Features & ML Pipeline
-1. **Intelligent Data Ingestion:** Extracts and isolates over 1,400 raw shot events across all 64 tournament matches. Actively filters out `period == 5` (penalty shootouts) to perfectly align spatial tracking data with official FIFA Golden Boot records.
-2. **XGBoost Classifier:** Maps highly non-linear threshold steps across engineered spatial geometries (Pythagorean distance to goal, absolute lateral deviation, and binary header status).
-3. **SHAP Interpretability:** Explains the underlying mathematics of the 'black box' model via TreeExplainer, mathematically proving that high distance vectors and aerial attempts apply heavy negative pressure on Expected Goals.
-4. **Interactive Dashboard:** Features a dynamic pitch visualization where shot marker sizes automatically scale based on the underlying danger of the shot (`xg_model * 1200 + 40`).
-5. **AI Automated Scouting:** Compiles the player's underlying array values (total shots, actual goals, accumulated model xG, and Finishing Efficiency Delta) into a JSON payload and dynamically queries Claude to generate professional tactical evaluations.
+# 📌 Project Overview
 
-## 💻 How to Run Locally
-1. Clone this repository.
-2. Install the required analytics stack: 
-   `pip install pandas scikit-learn xgboost matplotlib statsbombpy mplsoccer streamlit anthropic python-dotenv`
-3. Create a `.env` file in the root directory and add your Anthropic API Key: 
-   `ANTHROPIC_API_KEY=your-actual-api-key`
-4. Launch the application:
-   `streamlit run app.py`
+This project combines **machine learning**, **sports analytics**, **data visualization**, and **generative AI** into a complete football scouting workflow.
+
+Using StatsBomb Open Data, the application engineers spatial shooting features, trains an Expected Goals (xG) model with XGBoost, visualizes player shot distributions on an interactive football pitch, and produces AI-generated scouting reports based on player performance metrics.
+
+The application is built as an interactive Streamlit dashboard suitable for exploratory analysis and football scouting.
+
+---
+
+# ⚙️ Tech Stack
+
+### Data & Feature Engineering
+- StatsBomb Open Data (`statsbombpy`)
+- Pandas
+- NumPy
+
+### Machine Learning
+- XGBoost
+- Scikit-learn
+
+### Model Explainability
+- SHAP (SHapley Additive exPlanations)
+
+### Visualization
+- Streamlit
+- Matplotlib
+- mplsoccer
+
+### AI Integration
+- Groq API
+- Llama 3.3 70B Versatile
+- python-dotenv
+
+---
+
+# 🚀 Features
+
+## Expected Goals (xG) Model
+
+- Engineers football-specific spatial features:
+  - Distance to goal
+  - Shot angle
+  - Header indicator
+- Trains an XGBoost classifier on FIFA World Cup shot events
+- Generates xG probabilities for every shot
+- Uses a stratified train/test split for evaluation
+
+---
+
+## Interactive Dashboard
+
+The Streamlit application provides:
+
+- Player selection
+- Total shots
+- Goals scored
+- Accumulated xG
+- Finishing Efficiency (Goals − xG)
+- Interactive spatial shot map
+- xG-scaled shot markers
+
+---
+
+## AI Scouting Engine
+
+Automatically generates professional scouting reports using Groq's Llama 3.3 model.
+
+Each report includes:
+
+- Executive Summary
+- Finishing Ability
+- Shot Selection
+- Spatial Tendencies
+- Strengths
+- Weaknesses
+- Tactical Fit
+- Development Recommendations
+
+The AI analysis is generated directly from structured player performance metrics rather than manually written observations.
+
+---
+
+# 📊 Machine Learning Pipeline
+
+1. Load FIFA World Cup 2022 shot events from StatsBomb Open Data.
+2. Engineer spatial shooting features.
+3. Train an XGBoost Expected Goals classifier.
+4. Predict xG values for every shot.
+5. Aggregate player-level metrics.
+6. Visualize shooting patterns on a StatsBomb pitch.
+7. Generate AI-powered scouting reports using Groq Llama 3.3.
+
+---
+
+# 📁 Project Structure
+
+```text
+.
+├── app.py
+├── data_loader.py
+├── pitch_visualizer.py
+├── shap_explainer.py
+├── xg_model.py
+├── README.md
+├── .env
+└── requirements.txt
+```
+
+---
+
+# 💻 Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/vardan-shah/xg_engine.git
+cd xg_engine
+```
+
+Install dependencies
+
+```bash
+pip install pandas numpy scikit-learn xgboost matplotlib mplsoccer statsbombpy streamlit shap groq python-dotenv
+```
+
+Create a `.env` file
+
+```text
+GROQ_API_KEY=your_api_key_here
+```
+
+Run the application
+
+```bash
+streamlit run app.py
+```
+
+---
+
+# 📂 Dataset
+
+- **Competition:** FIFA World Cup Qatar 2022
+- **Source:** StatsBomb Open Data
+
+The dataset contains shot event information used to engineer spatial features and train the Expected Goals model.
+
+---
+
+# 🔮 Future Improvements
+
+- Player percentile rankings
+- Radar charts
+- Team comparison dashboard
+- Shot heatmaps
+- PDF scouting report export
+- Model comparison (XGBoost vs LightGBM vs CatBoost)
+- Live match data integration
