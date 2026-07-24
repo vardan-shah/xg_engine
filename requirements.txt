@@ -1,0 +1,11 @@
+streamlit
+pandas
+numpy
+scikit-learn
+xgboost
+shap
+statsbombpy
+mplsoccer
+matplotlib
+python-dotenv
+groq
